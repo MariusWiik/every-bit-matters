@@ -4,6 +4,9 @@ var port = process.env.PORT || 3000;
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+/* How often to invoke logger */
+var frequency = process.env.FREQ || 3600000
+
 
 
 io.on('connect', function(socket){
@@ -23,7 +26,7 @@ io.on('connect', function(socket){
 /* Tell the logger to log at given intervals */
 setInterval(function(){
 	io.emit('logger:run');
-}, 3600000); /*Every 1 hour */
+}, frequency); /*Every 1 hour */
 
 
 

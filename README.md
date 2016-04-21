@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 # every-bit-matters
-=======
-every-bit-matters
-=================
+
+Temperature and humidity reading made by a raspberry pi.
+Falls back to a random dataset when a reading cant be done
 
 Hands-on workshop in web architecture with [node.js](http://www.nodejs.org) and deployment with [Heroku](http://heroku.com).
 >>>>>>> master
@@ -28,4 +28,4 @@ Run all the applications, and validate that connections are running by verifying
 ### Get started
 
 Install the dependencies outlined in the [installation guide](https://github.com/krsjan/every-bit-matters/wiki/installation-guide). Then head over to the [tutorial](https://github.com/krsjan/every-bit-matters/wiki/0:-Hello-Client-and-Server).
->>>>>>> master
+
