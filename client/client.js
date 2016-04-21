@@ -7,53 +7,117 @@ socket.on('connect', function(data){
 
 socket.on('client:display', function(results){
 	
-	/* get DOM element */
-	var tbody = document.getElementsByTagName('tbody')[0];
 	
-	/* Clear the table body */
-	tbody.innerHTML = "";
+	var todayTemp = new Array();
+	var todayHum = new Array();
+	var yesterdayTemp = new Array();
+	var yesterdayHum = new Array();
 	
 	
-	/* Go through all data and write it to the DOM */
-	results.forEach(function(data){
+	var today = new Date();
+	var yesterday = new Date();
+	yesterday.setDate(today.getDate() - 1); //Set to yesterday
 	
+	
+	
+	var todaysDate;
+	var yesterdaysDate;
 
-	/* Create row */
-	var tr = document.createElement('tr');
+	/* Loop through all json objects */
+	results.forEach(function(data){	
+		/* Add to correct array */
+		if(getDay(data.time) == today.getDate()){
+			/* Add to today array */
+		    
+			/* Add a label for the chart */
+			data.label = getHour(data.time);
+			
+			/* Get todays date */
+			todaysDate = getDate(data.time);
+			
+			
+			/* Create temperature object */
+			var temp = {
+				x : getHour(data.time), y : data.Temperature
+			}
+			/* Push to todayTemp array */
+			todayTemp.push(temp);
+			
+			/* Same for humidity */
+			var hum = {
+				x : getHour(data.time), y : data.Humidity
+			}
+			todayHum.push(hum);
+		}
+		/* Do the same for yesterday */
+		else if(getDay(data.time) == yesterday.getDate()){
+			var temp = {
+				x : getHour(data.time), y : data.Temperature
+			}
+			yesterdaysDate = getDate(data.time);
+			console.log(yesterdaysDate);
+			var hum = {
+				x : getHour(data.time), y : data.Humidity
+			}
+			yesterdayTemp.push(temp);
+			yesterdayHum.push(hum);
+			
+		}
 	
-	/* Create columns */
-	var date = document.createElement('td');
-	var ping = document.createElement('td');
-	var upload = document.createElement('td');
-	var download = document.createElement('td');
-	
-	/*Populate columns */
-	date.innerText = timeConverter(data.date);
-	ping.innerText = data.ping;
-	upload.innerText = data.upload;
-	download.innerText = data.download;
-	
-	/* append columns to row */
-	tr.appendChild(date);
-	tr.appendChild(ping);
-	tr.appendChild(upload);
-	tr.appendChild(download);
-	
-	/* Append row to body */
-	tbody.appendChild(tr);
-		
 	});
+	
+	/* Draw todays chart  */
+    render_chart(todaysDate, todayTemp, todayHum, "today");
+	
+	/* Draw yesterdays chart */
+	render_chart(yesterdaysDate, yesterdayTemp, yesterdayHum, "yesterday");
+		
 }); 
 
-function timeConverter(UNIX_timestamp){
-  var a = new Date(UNIX_timestamp);
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var year = a.getFullYear();
-  var month = months[a.getMonth()];
-  var date = a.getDate();
-  var hour = a.getHours();
-  var min = a.getMinutes();
-  var sec = a.getSeconds();
-  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
-  return time;
+/* Get date from unix timestamp */
+function getDay(UNIX_timestamp){
+	var a = new Date(UNIX_timestamp * 1000);
+	return a.getDate();
+}
+
+function getDate(UNIX_TIMESTAMP){
+	var a = new Date(UNIX_TIMESTAMP * 1000);
+	var month = a.getMonth() + 1; // Increment month because javascript for some reason counts months from 0.
+	return getDay(UNIX_TIMESTAMP) + "." + month;
+}
+
+function getHour(UNIX_TIMESTAMP){
+	var a = new Date(UNIX_TIMESTAMP * 1000);
+	return a.getHours();
+}
+
+function render_chart(date, temp, hum, div){
+	
+	var chart = new CanvasJS.Chart(div, {
+		animationEnabled: true,
+		title:{
+			text: "Temp and humidity for " + date
+		},
+		axisX:{
+			title: "Time",
+			interval: 1	
+		},
+		data: [              
+			{
+				showInLegend: true,
+				name: "Temperature C",
+				type: "spline",
+				dataPoints: temp
+			},
+			{
+				showInLegend: true,
+				name: "Humidity %",
+				type: "spline",
+				dataPoints: hum	
+			},
+		],
+		
+
+	});
+	chart.render();
 }

@@ -4,6 +4,8 @@ var port = process.env.PORT || 3000;
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+
+
 io.on('connect', function(socket){
    console.log("Client connected");
 	
@@ -21,7 +23,7 @@ io.on('connect', function(socket){
 /* Tell the logger to log at given intervals */
 setInterval(function(){
 	io.emit('logger:run');
-}, 30000); /*Every 30 seconds */
+}, 3600000); /*Every 1 hour */
 
 
 

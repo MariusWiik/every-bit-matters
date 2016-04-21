@@ -1,46 +1,46 @@
 var speedtest = require('speedtest-net');
 var fileSystem = require('fs');
-
+var fallbackScript = "jsontest.py"
+var pythonscript = "templog.py"
 var fileName = __dirname + '/history.json';
 var history = JSON.parse(fileSystem.readFileSync(fileName));
 var socket = require('socket.io-client')('http://localhost:3000/');
 
-
+/* To execute shell command */
+var sys = require('util');
+var exec = require('child_process').exec;
+var child;
 
 
 socket.on('logger:run', function(){
-	console.log('Starting speedtest...');
-	var test = speedtest();
+	console.log('Getting new reading...');
+	/* Invoke pythonscript to get new reading */
+	
+	child = exec('python3 ' + pythonscript, function(error, stdout, stderr){
 		
-	test.on('data', function (data) {
-		var result = {
-			download: data.speeds.download,
-			upload: data.speeds.upload,
-			ping: data.server.ping,
-			date: Date.now()
-		};
+		/* If the script prints error or some other error occurs */
+		if(stdout == "Error" || error != null){
+			console.log("Generating random data ");
+			/* Fallback to randomly generated data data */
+			child = exec('python3 ' + fallbackScript + " 48", function(error, stdout, stderr){
+				/* Change filename to testData */
+				fileName = __dirname + '/testData.json';
+			});
+		}
 		
-		/* Push the results to the history list */
-		history.push(result);
 		
+		/* Parse the file again to look for changes */
+		history = JSON.parse(fileSystem.readFileSync(fileName));
+		/* Change filename back */
+		fileName = __dirname + '/history.json';
 		/* Send result to server */
+		console.log("Sending results to server");
 		socket.emit('server:results', history);
-		
-		/* Create json object and write to file */
-		var jsonResult = JSON.stringify(history);
-		fileSystem.writeFile(fileName, jsonResult, function (err) {
-			if (err) {
-				console.log('Something went wrong: ' + err);
-			} else {
-				console.log('Speedtest finished');
-			}
-		});
 	});
 	
-	test.on('error', function (err) {
-		console.error(err);
-	});
-
+	
+	
+		
 })
 
 /* Send entire history to the server */
